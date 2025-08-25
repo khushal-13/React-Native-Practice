@@ -1,14 +1,27 @@
 import { account, client } from "./appwrite";
 
+// Register + send verification
+export async function register(email, password, name) {
+  try {
+    // 1️⃣ Create the user
+    const newUser = await account.create("unique()", email, password, name);
 
-//register
-export async function register(name, email, password) {
-    try {
-        return await account.create("unique()", email, password, name);
-    } catch (error) {
-        console.log(`Error registering User ${name}`, error);
-        throw error;
-    }
+    // 2️⃣ Send verification email
+    await account.createVerification("exp://192.168.1.100:8081/--/verify");
+
+    // 3️⃣ Return newUser + info
+    return {
+      success: true,
+      message: "User registered. Verification email sent.",
+      user: newUser,
+    };
+  } catch (error) {
+    console.error(`❌ Error registering User ${name}`, error.message);
+    return {
+      success: false,
+      message: error.message || "Registration failed",
+    };
+  }
 }
 
 //login
@@ -21,14 +34,13 @@ export async function login(email, password) {
     }
 }
 
-
 //get current user
 export async function getCurrentUser() {
     try {
         return await account.get();
     } catch (error) {
         console.log(`Error getting current User`, error);
-        throw null;
+        return null;
     }
 }
 

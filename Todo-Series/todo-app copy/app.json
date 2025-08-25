@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "todo-app-appwrite",
-    "slug": "todo-app-appwrite",
+    "name": "todo-app",
+    "slug": "todo-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,6 +20,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "scheme": "todo-list-app",
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -27,13 +28,6 @@
     },
     "plugins": [
       "expo-router"
-    ],
-    "scheme": "todo-list-appwrite",
-    "platforms": ["ios", "android", "web"],
-    "extra": {
-      "eas": {
-        "projectId": "68691a0c003493f4dbdd"
-      }
-    }
+    ]
   }
 }

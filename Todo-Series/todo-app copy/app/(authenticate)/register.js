@@ -13,35 +13,35 @@ import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { login, register } from "../../appwrite/authService";
+import axios from "axios";
 
-const Register = () => {
+
+const register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleRegister = async () => {
-    if (!email || !password || !name) {
-      alert("All fields are required");
-      return;
-    }
+  const handleRegister = () => {
+    const user = {
+        name: name,
+        email: email,
+        password: password
+    };
 
-    try {
-      const result = await register(email, password, name);
-      if (result.success) {
-        Alert.alert(
-          "User Registered",
-          "Please check your email to verify your account before logging in."
-        );
-        router.replace("/(tabs)/Login");
-      } else {
-        Alert.alert("Error", result.message);
-      }
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
+    axios.post("http://192.168.1.100:3000/register/", user)
+    .then((response) => {
+      console.log(response);
+      Alert.alert("Registration Successfull", "User registered successfull");
+      setName("");
+      setEmail("");
+      setPassword("");
+    })
+    .catch((error) => {
+      Alert.alert("Registration failed");
+      console.log("Error while registering user :: Frontend :: ", error)
+    })
+  }
 
   return (
     <SafeAreaView
@@ -49,6 +49,7 @@ const Register = () => {
     >
       <View style={{ marginTop: 60 }}>
         <Text style={{ fontSize: 18, fontWeight: "600", color: "#0066b2" }}>
+          {" "}
           TODO-LIST TRACKER
         </Text>
       </View>
@@ -162,13 +163,14 @@ const Register = () => {
           >
             <Text> Keep me logged In</Text>
             <Text style={{ color: "#007FFF", fontWeight: "500" }}>
+              {" "}
               Forgot Password
             </Text>
           </View>
 
           <View style={{ marginTop: 60 }}>
             <Pressable
-              onPress={handleRegister}
+            onPress={handleRegister}
               style={{
                 width: 180,
                 backgroundColor: "#6699CC",
@@ -186,12 +188,13 @@ const Register = () => {
                   fontSize: 16,
                 }}
               >
-                Register
+                {" "}
+                Register{" "}
               </Text>
             </Pressable>
 
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.replace("/login")}
               style={{
                 marginTop: "15",
               }}
@@ -203,7 +206,8 @@ const Register = () => {
                   fontSize: 15,
                 }}
               >
-                Already have an account ? Login
+                {" "}
+                Already have an account ? Login{" "}
               </Text>
             </Pressable>
           </View>
@@ -213,6 +217,6 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default register;
 
 const styles = StyleSheet.create({});

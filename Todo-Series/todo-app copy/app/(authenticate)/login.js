@@ -10,45 +10,56 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { login, register } from "../../appwrite/authService";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Register = () => {
-  const [name, setName] = useState("");
+const login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleRegister = async () => {
-    if (!email || !password || !name) {
-      alert("All fields are required");
-      return;
-    }
-
-    try {
-      const result = await register(email, password, name);
-      if (result.success) {
-        Alert.alert(
-          "User Registered",
-          "Please check your email to verify your account before logging in."
-        );
-        router.replace("/(tabs)/Login");
-      } else {
-        Alert.alert("Error", result.message);
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        if(token) {
+          router.replace("/(tabs)/home")
+        }
+        console.log(token);
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      Alert.alert("Error", error.message);
     }
-  };
+    checkLoginStatus();
+  })
+
+  const handleLogin = () => {
+    const user = {
+        email: email,
+        password: password
+    };
+
+    axios.post("http://192.168.1.100:3000/login", user)
+    .then((response) => {
+      const token = response.data.token;
+      AsyncStorage.setItem("authToken", token);
+      router.push("/(tabs)/home")
+    })
+    .catch((error) => {
+      Alert.alert("Error while login");
+      console.log(error);
+    })
+  }
 
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
     >
-      <View style={{ marginTop: 60 }}>
+      <View style={{ marginTop: 80 }}>
         <Text style={{ fontSize: 18, fontWeight: "600", color: "#0066b2" }}>
+          {" "}
           TODO-LIST TRACKER
         </Text>
       </View>
@@ -56,41 +67,11 @@ const Register = () => {
       <KeyboardAvoidingView>
         <View style={{ alignItems: "center" }}>
           <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 20 }}>
-            Register Your Account
+            Log In to Your Account
           </Text>
         </View>
 
-        <View style={{ marginTop: 50 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              backgroundColor: "#E0E0E0",
-              paddingVertical: 2,
-              borderRadius: 5,
-              marginTop: 30,
-            }}
-          >
-            <Ionicons
-              name="person"
-              size={24}
-              color="gray"
-              style={{ marginLeft: 8 }}
-            />
-            <TextInput
-              value={name}
-              onChangeText={(text) => setName(text)}
-              style={{
-                color: "gray",
-                width: 280,
-                marginVertical: 8,
-                fontSize: 16,
-              }}
-              placeholder="Enter name"
-            />
-          </View>
-
+        <View style={{ marginTop: 70 }}>
           <View
             style={{
               flexDirection: "row",
@@ -162,13 +143,14 @@ const Register = () => {
           >
             <Text> Keep me logged In</Text>
             <Text style={{ color: "#007FFF", fontWeight: "500" }}>
+              {" "}
               Forgot Password
             </Text>
           </View>
 
           <View style={{ marginTop: 60 }}>
             <Pressable
-              onPress={handleRegister}
+              onPress={handleLogin}
               style={{
                 width: 180,
                 backgroundColor: "#6699CC",
@@ -186,12 +168,13 @@ const Register = () => {
                   fontSize: 16,
                 }}
               >
-                Register
+                {" "}
+                Login{" "}
               </Text>
             </Pressable>
 
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.replace("/register")}
               style={{
                 marginTop: "15",
               }}
@@ -203,7 +186,8 @@ const Register = () => {
                   fontSize: 15,
                 }}
               >
-                Already have an account ? Login
+                {" "}
+                Don't have an account ? Sign Up{" "}
               </Text>
             </Pressable>
           </View>
@@ -213,6 +197,6 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default login;
 
 const styles = StyleSheet.create({});
