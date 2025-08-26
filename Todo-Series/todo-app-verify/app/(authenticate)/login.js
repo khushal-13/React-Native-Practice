@@ -14,44 +14,48 @@ import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../axiosUrl";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
-        if(token) {
-          router.replace("/(tabs)/home")
+        if (token) {
+          router.replace("/(tabs)/home");
         }
         console.log(token);
       } catch (error) {
         console.log(error);
       }
-    }
+    };
     checkLoginStatus();
-  })
+  }, []);
 
   const handleLogin = () => {
     const user = {
-        email: email,
-        password: password
+      email: email,
+      password: password,
     };
 
-    axios.post("http://192.168.1.100:3000/login", user)
-    .then((response) => {
-      const token = response.data.token;
-      AsyncStorage.setItem("authToken", token);
-      router.push("/(tabs)/home")
-    })
-    .catch((error) => {
-      Alert.alert("Error while login");
-      console.log(error);
-    })
-  }
+    api
+      .post("/login", user)
+      .then((response) => {
+        const token = response.data.token;
+        AsyncStorage.setItem("authToken", token);
+        router.replace("/(tabs)/home");
+      })
+      .catch((error) => {
+        Alert.alert("Error while login");
+        console.log(error);
+      });
+  };
 
   return (
     <SafeAreaView
@@ -59,7 +63,6 @@ const login = () => {
     >
       <View style={{ marginTop: 80 }}>
         <Text style={{ fontSize: 18, fontWeight: "600", color: "#0066b2" }}>
-          {" "}
           TODO-LIST TRACKER
         </Text>
       </View>
@@ -122,15 +125,24 @@ const login = () => {
             <TextInput
               value={password}
               onChangeText={(text) => setPassword(text)}
-              secureTextEntry={true}
+              secureTextEntry={!showPassword}
               style={{
                 color: "gray",
-                width: 280,
+                flex: 1,
                 marginVertical: 8,
                 fontSize: 16,
               }}
               placeholder="Enter password"
             />
+
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={22}
+                color="gray"
+                style={{ padding: 12 }}
+              />
+            </Pressable>
           </View>
 
           <View
@@ -141,9 +153,7 @@ const login = () => {
               marginTop: 12,
             }}
           >
-            <Text> Keep me logged In</Text>
             <Text style={{ color: "#007FFF", fontWeight: "500" }}>
-              {" "}
               Forgot Password
             </Text>
           </View>
@@ -168,28 +178,46 @@ const login = () => {
                   fontSize: 16,
                 }}
               >
-                {" "}
-                Login{" "}
+                Login
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={() => router.replace("/register")}
+            <View
               style={{
-                marginTop: "15",
+                flexDirection: "row",
+                gap: 10,
+                justifyContent: "center",
+                marginTop: 15,
               }}
             >
+              <Pressable
+              // onPress={() => router.replace("/login")}
+              // style={{
+              //   marginTop: "15",
+              // }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    color: "gray",
+                    fontSize: 15,
+                  }}
+                >
+                  Don't have an account ?
+                </Text>
+              </Pressable>
               <Text
                 style={{
                   textAlign: "center",
-                  color: "gray",
+                  color: "#007FFF",
+                  fontWeight: "500",
                   fontSize: 15,
                 }}
+                onPress={() => router.replace("/register")}
               >
-                {" "}
-                Don't have an account ? Sign Up{" "}
+                Register
               </Text>
-            </Pressable>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>

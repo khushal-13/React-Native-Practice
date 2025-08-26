@@ -7,6 +7,8 @@ import cors from "cors";
 import User from "./models/user.js";
 import Todo from "./models/todo.js";
 import moment from "moment";
+import { sendMail } from "./mailer/index.js";
+import { generate } from "otp-generator";
 
 const app = express();
 const PORT = 3000;
@@ -33,6 +35,17 @@ const generateSecretKey = () => {
   return secretKey;
 };
 
+const generateOTP = () => {
+  const id = crypto.randomUUID();
+  const otp = generate(4, {
+    digits: true,
+    lowerCaseAlphabets: false,
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
+  return otp;
+};
+
 const secretKey = generateSecretKey();
 
 app.post("/register", async (req, res) => {
@@ -43,6 +56,7 @@ app.post("/register", async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("Email already registered");
+      return res.status(400).json({ message: "Email already registered" });
     }
 
     const newUser = new User({
@@ -51,26 +65,60 @@ app.post("/register", async (req, res) => {
       password,
     });
 
+    // generate OTP
+    const otp = generateOTP();
+    newUser.otp = otp;
+    newUser.otpExpiry = Date.now() + 5 * 60 * 1000;
     await newUser.save();
 
-    res.status(202).json({ message: "User registered successfully" });
+    await sendMail(email, otp);
+
+    console.log("OTP Sent");
+    res.status(202).json({ message: "OTP sent to email for verification" });
   } catch (error) {
     console.log("Error while registering User", error);
     res.status(500).json({ message: "Registration failed" });
   }
 });
 
+app.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "User already verified" });
+    }
+
+    if (user.otp !== otp || Date.now() > user.otpExpiry) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "User verified successfully" });
+  } catch (error) {
+    console.log("Error verifying OTP", error);
+    res.status(500).json({ message: "OTP verification failed" });
+  }
+});
+
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    //check if email already exists
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("Invalid Email");
       return res.status(401).json({ message: "Invalid email" });
     }
 
     if (user.password !== password) {
+      console.log("Invalid Password");
       return res.status(401).json({ message: "Invalid password" });
     }
 
@@ -85,11 +133,10 @@ app.post("/login", async (req, res) => {
 app.post("/todos/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
-    const { title, category } = req.body;
+    const { title } = req.body;
 
     const newTodo = new Todo({
       title,
-      category,
       dueDate: moment().format("YYYY-MM-DD"),
     });
 
@@ -150,36 +197,35 @@ app.patch("/todos/:todoId/complete", async (req, res) => {
   }
 });
 
-
-app.get("/todos/completed/:date", async(req, res) => {
+app.get("/todos/completed/:date", async (req, res) => {
   try {
     const date = req.params.date;
     const completedTodos = await Todo.find({
       status: "completed",
       createdDate: {
         $gte: new Date(`${date}T00:00:00.000Z`),
-        $lt: new Date(`${date}T23:59:59.999Z`)
-      }
+        $lt: new Date(`${date}T23:59:59.999Z`),
+      },
     }).exec();
 
     res.status(200).json({ completedTodos });
   } catch (error) {
-    res.status(500).json({error: `Error fetching todos of date ${date}`});
+    res.status(500).json({ error: `Error fetching todos of date ${date}` });
   }
-})
+});
 
-app.get("/todos/count", async(req, res) => {
+app.get("/todos/count", async (req, res) => {
   try {
     const totalCompletedTodos = await Todo.countDocuments({
-      status: "completed"
+      status: "completed",
     }).exec();
 
     const totalPendingTodos = await Todo.countDocuments({
-      status: "pending"
+      status: "pending",
     }).exec();
 
-    res.status(200).json({totalCompletedTodos, totalPendingTodos});
+    res.status(200).json({ totalCompletedTodos, totalPendingTodos });
   } catch (error) {
-    res.status(500).json({error: "Didn't count"});
+    res.status(500).json({ error: "Didn't count" });
   }
-})
+});

@@ -8,6 +8,7 @@ import axios from "axios";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import api from "../../axiosUrl";
 
 
 const Index = () => {
@@ -17,8 +18,8 @@ const Index = () => {
 
   const fetchCompletedTodos = async () => {
     try {
-      const response = await axios.get(
-        `http://192.168.1.102:3000/todos/completed/${selectedDate}`
+      const response = await api.get(
+        `/todos/completed/${selectedDate}`
       );
       const completedTodos = response.data.completedTodos || [];
       setTodos(completedTodos);

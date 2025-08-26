@@ -1,37 +1,27 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Feather from "@expo/vector-icons/Feather";
-import Entypo from "@expo/vector-icons/Entypo";
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import { useLocalSearchParams } from "expo-router";
+import { Ionicons, AntDesign, Feather, SimpleLineIcons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 const info = () => {
+  const router = useRouter();
   const params = useLocalSearchParams();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white", padding: 10 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-        <Entypo name="dots-three-vertical" size={24} color="black" />
-      </View>
+      <Ionicons onPress={() => router.back()} name="arrow-back" size={24} color="black" />
 
-      <View style={{ marginTop: 5 }}>
-        <Text style={{ fontSize: 15, fontWeight: "500" }}>
-          Category - {params?.category}
+      <View>
+        <View style={{ marginTop: 8 }}>
+          <Text style={{ fontSize: 18, fontWeight: "600", textAlign: "center"}}>
+            Todo Info
+          </Text>
+        </View>
+
+        <Text style={{ marginLeft: 20, marginTop: 30, fontSize: 18, fontWeight: "400" }}>
+          Title : {params?.title}
         </Text>
       </View>
-
-      <Text style={{ marginTop: 20, fontSize: 17, fontWeight: "600" }}>
-        Title - {params?.title}
-      </Text>
 
       <View style={{ marginTop: 50 }} />
 

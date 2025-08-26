@@ -10,21 +10,15 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Feather from "@expo/vector-icons/Feather";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Ionicons } from "@expo/vector-icons";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Ionicons, AntDesign, Entypo, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import axios from "axios";
 import { useRouter } from "expo-router";
+import api from "../../axiosUrl";
 
 const index = () => {
   const [todos, setTodos] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [category, setCategory] = useState("All");
   const [todo, setTodo] = useState("");
   const [pendingTodos, setPendingTodos] = useState([]);
   const [completedTodos, setCompletedTodos] = useState([]);
@@ -68,14 +62,12 @@ const index = () => {
     try {
       const todoData = {
         title: todo,
-        category: category,
       };
 
-      axios
-        .post(
-          "http://192.168.1.102:3000/todos/68a5c34e6a6b9ae0c4ba646b",
-          todoData
-        )
+      console.log(todoData);
+
+      api
+        .post("/todos/68a5c34e6a6b9ae0c4ba646b", todoData)
         .then((response) => {
           console.log(response);
         })
@@ -94,9 +86,7 @@ const index = () => {
 
   const getUserTodos = async () => {
     try {
-      const response = await axios.get(
-        `http://192.168.1.102:3000/users/68a5c34e6a6b9ae0c4ba646b/todos`
-      );
+      const response = await api.get(`/users/68a5c34e6a6b9ae0c4ba646b/todos`);
       setTodos(response.data.todos);
 
       const fetchedTodos = response.data.todos || [];
@@ -117,9 +107,7 @@ const index = () => {
   const markeTodoComplete = async (todoId) => {
     try {
       setMarked(true);
-      const response = axios.patch(
-        `http://192.168.1.102:3000/todos/${todoId}/complete`
-      );
+      const response = api.patch(`/todos/${todoId}/complete`);
       console.log(response.data);
     } catch (error) {
       console.log("Error marking complete", error);
@@ -194,21 +182,23 @@ const index = () => {
         <View style={{ padding: 10 }}>
           {todos?.length > 0 ? (
             <View>
-              {pendingTodos?.length > 0 && <Text> Tasks to Do! {today}</Text>}
+              <View style={{ flexDirection: "row", justifyContent:"space-between"}}> 
+                <Text style={{ fontWeight:"bold"}}>{pendingTodos?.length > 0 && <Text> Tasks to Do!</Text>}</Text>
+                <Text>{today}</Text>
+              </View>
               {pendingTodos?.map((item, index) => (
                 <Pressable
                   onPress={() => {
                     router?.push({
-                    pathname: "/home/info",
-                    params: {
-                      id: item._id,
-                      title: item?.title,
-                      category: item?.category,
-                      createdDate: item?.createdDate,
-                      dueDate: item?.dueDate
-                    },
-                  });
-                }}
+                      pathname: "/home/info",
+                      params: {
+                        id: item._id,
+                        title: item?.title,
+                        createdDate: item?.createdDate,
+                        dueDate: item?.dueDate,
+                      },
+                    });
+                  }}
                   style={{
                     backgroundColor: "#E0E0E0",
                     padding: 10,
@@ -231,7 +221,7 @@ const index = () => {
                       color="black"
                     />
                     <Text style={{ flex: 1 }}> {item.title} </Text>
-                    <Feather name="flag" size={20} color="black" />
+
                   </View>
                 </Pressable>
               ))}
@@ -262,11 +252,6 @@ const index = () => {
                     }}
                   >
                     <Text> Completed tasks</Text>
-                    <MaterialIcons
-                      name="arrow-drop-down"
-                      size={24}
-                      color="black"
-                    />
                   </View>
 
                   {completedTodos?.map((item, index) => (
@@ -296,7 +281,6 @@ const index = () => {
                         >
                           {item.title}
                         </Text>
-                        <Feather name="flag" size={20} color="gray" />
                       </View>
                     </Pressable>
                   ))}
@@ -408,29 +392,6 @@ const index = () => {
                 size={24}
                 color="#007FFF"
               />
-            </View>
-
-            {/* Category selection */}
-            <Text style={{ fontWeight: "600", marginBottom: 5 }}>
-              Choose Category
-            </Text>
-            <View style={{ flexDirection: "row", gap: 10, marginVertical: 10 }}>
-              {["Work", "Personal", "WishList"].map((cat) => (
-                <Pressable
-                  key={cat}
-                  onPress={() => setCategory(cat)}
-                  style={{
-                    borderColor: "#E0E0E0",
-                    borderWidth: 1,
-                    borderRadius: 25,
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                    backgroundColor: category === cat ? "#D0E8FF" : "white",
-                  }}
-                >
-                  <Text>{cat}</Text>
-                </Pressable>
-              ))}
             </View>
 
             {/* Suggestions */}

@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import axios from "axios";
 import { LineChart } from "react-native-chart-kit";
+import api from "../../axiosUrl";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const index = () => {
   const [completedTasks, setCompletedTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
+  const router = useRouter();
 
   const fetchTaskData = async () => {
     try {
-      const resposne = await axios.get("http://192.168.1.102:3000/todos/count");
+      const resposne = await api.get("/todos/count");
       const { totalCompletedTodos, totalPendingTodos } = resposne.data;
       setCompletedTasks(totalCompletedTodos);
       setPendingTasks(totalPendingTodos);
@@ -25,6 +35,15 @@ const index = () => {
 
   // console.log("Completed : ", completedTasks);
   // console.log("Pending : ", pendingTasks);
+  
+  const handleLogout = async () => {
+    try {
+      AsyncStorage.removeItem("authToken");
+      router.replace("(authenticate)/login");
+    } catch (error) {
+      console.log("Error log out");
+    }
+  }
 
   return (
     <SafeAreaView style={{ padding: 10, flex: 1, backgroundColor: "white" }}>
@@ -153,6 +172,35 @@ const index = () => {
             uri: "https://cdn-icons-png.flaticon.com/128/9537/9537221.png",
           }}
         />
+
+        <Pressable
+          onPress={handleLogout}
+          style={{
+            backgroundColor: "#FF3B30", // a nicer iOS-style red
+            marginTop: 20,
+            width: "100%",
+            paddingVertical: 12,
+            borderRadius: 8,
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5, // shadow on Android
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 16,
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            Logout
+          </Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
