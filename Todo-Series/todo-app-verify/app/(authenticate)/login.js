@@ -8,14 +8,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Entypo from "@expo/vector-icons/Entypo";
+import { MaterialIcons, Ionicons, Entypo }  from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axiosUrl";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 const login = () => {
   const [email, setEmail] = useState("");

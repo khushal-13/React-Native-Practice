@@ -229,3 +229,42 @@ app.get("/todos/count", async (req, res) => {
     res.status(500).json({ error: "Didn't count" });
   }
 });
+
+
+app.patch("/todos/:todoId", async (req, res) => {
+  try {
+    const todoId = req.params.todoId;
+    const { title } = req.body;
+
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      todoId,
+      {
+        title: title,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if(!updatedTodo) {
+      return res.status(404).json({ message: "Todo not found"});
+    }
+
+    res.status(200).json({ message: "Todo updated", todo: updatedTodo});
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update todo"});
+  }
+});
+
+
+app.delete("/todos/:todoId", async(req, res) => {
+  try {
+    const todoId = req.params.todoId;
+
+    const todo = await Todo.findByIdAndDelete(todoId);
+    if(!todo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+    return res.status(200).json({ message: "Todo deleted" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete Todo"});
+  }
+});

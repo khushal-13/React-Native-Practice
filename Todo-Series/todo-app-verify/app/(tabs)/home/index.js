@@ -10,7 +10,14 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, AntDesign, Entypo, FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  MaterialIcons,
+  Feather,
+} from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import { useRouter } from "expo-router";
@@ -23,6 +30,8 @@ const index = () => {
   const [pendingTodos, setPendingTodos] = useState([]);
   const [completedTodos, setCompletedTodos] = useState([]);
   const [marked, setMarked] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTodoId, setEditTodoId] = useState(null);
 
   const today = moment().format("MMM Do");
   const router = useRouter();
@@ -66,7 +75,7 @@ const index = () => {
 
       console.log(todoData);
 
-      api
+      await api
         .post("/todos/68a5c34e6a6b9ae0c4ba646b", todoData)
         .then((response) => {
           console.log(response);
@@ -111,6 +120,39 @@ const index = () => {
       console.log(response.data);
     } catch (error) {
       console.log("Error marking complete", error);
+    }
+  };
+
+  const updateTodo = async (todoId, title) => {
+    try {
+      const response = await api.patch(`/todos/${todoId}`, { title });
+      console.log("Updated Todo :: ", response.data);
+
+      //referesh todos after editing
+      await getUserTodos();
+
+      // reset modal state after edit
+      setModalVisible(false);
+      setIsEditMode(false);
+      setEditTodoId(null);
+      setTodo("");
+    } catch (error) {
+      console.log(
+        "Error updating Todo :: ",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const handleDelete = async (todoId) => {
+    try {
+      const response = await api.delete(`/todos/${todoId}`);
+      console.log("Deleted Todo :: ", response.data);
+
+      //referesh todos after editing
+      await getUserTodos();
+    } catch (error) {
+      console.log("Error deleting Todo");
     }
   };
 
@@ -182,8 +224,15 @@ const index = () => {
         <View style={{ padding: 10 }}>
           {todos?.length > 0 ? (
             <View>
-              <View style={{ flexDirection: "row", justifyContent:"space-between"}}> 
-                <Text style={{ fontWeight:"bold"}}>{pendingTodos?.length > 0 && <Text> Tasks to Do!</Text>}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ fontWeight: "bold" }}>
+                  {pendingTodos?.length > 0 && <Text> Tasks to Do!</Text>}
+                </Text>
                 <Text>{today}</Text>
               </View>
               {pendingTodos?.map((item, index) => (
@@ -222,6 +271,23 @@ const index = () => {
                     />
                     <Text style={{ flex: 1 }}> {item.title} </Text>
 
+                    <Feather
+                      name="edit"
+                      size={24}
+                      color="#007AFF"
+                      onPress={() => {
+                        setTodo(item.title),
+                          setEditTodoId(item._id),
+                          setIsEditMode(true),
+                          setModalVisible(!isModalVisible);
+                      }}
+                    />
+                    <MaterialIcons
+                      name="delete"
+                      size={24}
+                      color="#FF3B30"
+                      onPress={() => handleDelete(item._id)}
+                    />
                   </View>
                 </Pressable>
               ))}
@@ -362,7 +428,7 @@ const index = () => {
                 textAlign: "center",
               }}
             >
-              Add a Todo
+              {isEditMode ? "Edit Todo" : "Add a Todo"}
             </Text>
 
             {/* Input + Send */}
@@ -387,7 +453,13 @@ const index = () => {
                 }}
               />
               <Ionicons
-                onPress={addTodo}
+                onPress={() => {
+                  if (isEditMode) {
+                    updateTodo(editTodoId, todo);
+                  } else {
+                    addTodo();
+                  }
+                }}
                 name="send"
                 size={24}
                 color="#007FFF"

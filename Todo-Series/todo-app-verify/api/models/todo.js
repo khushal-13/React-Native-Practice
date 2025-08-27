@@ -17,7 +17,12 @@ const todoSchema = mongoose.Schema({
     createdDate: {
         type: Date,
         default: Date.now
-    }
+    },
+    user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",   // links to User
+    required: true,
+  },
 });
 
 const Todo =  mongoose.model("Todo", todoSchema);
