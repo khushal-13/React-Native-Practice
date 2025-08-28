@@ -18,10 +18,11 @@ import {
   MaterialIcons,
   Feather,
 } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import moment from "moment";
 import { useRouter } from "expo-router";
 import api from "../../axiosUrl";
+import { AuthContext } from "../../../context/AuthContext";
 
 const index = () => {
   const [todos, setTodos] = useState([]);
@@ -35,6 +36,31 @@ const index = () => {
 
   const today = moment().format("MMM Do");
   const router = useRouter();
+  const { user, loading } = useContext(AuthContext);
+
+
+  useEffect(() => {
+    if (!loading && user?._id) {
+      getUserTodos();
+    }
+  }, [isModalVisible, marked, loading]);
+
+  // // 🔹 Protect against user being null or not loaded yet
+  // if (loading) {
+  //   return (
+  //     <SafeAreaView
+  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+  //     >
+  //       <Text>Loading...</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
+
+  console.log(
+    "------------------------------",
+    user,
+    "---------------------------"
+  );
 
   const suggestions = [
     {
@@ -63,20 +89,14 @@ const index = () => {
     // },
   ];
 
-  useEffect(() => {
-    getUserTodos();
-  }, [marked, isModalVisible]);
-
   const addTodo = async () => {
     try {
       const todoData = {
         title: todo,
       };
 
-      console.log(todoData);
-
       await api
-        .post("/todos/68a5c34e6a6b9ae0c4ba646b", todoData)
+        .post(`/todos/${user._id}`, todoData)
         .then((response) => {
           console.log(response);
         })
@@ -95,7 +115,7 @@ const index = () => {
 
   const getUserTodos = async () => {
     try {
-      const response = await api.get(`/users/68a5c34e6a6b9ae0c4ba646b/todos`);
+      const response = await api.get(`/users/${user._id}/todos`);
       setTodos(response.data.todos);
 
       const fetchedTodos = response.data.todos || [];
@@ -115,9 +135,14 @@ const index = () => {
 
   const markeTodoComplete = async (todoId) => {
     try {
-      setMarked(true);
-      const response = api.patch(`/todos/${todoId}/complete`);
-      console.log(response.data);
+      const response = await api.patch(`/todos/${todoId}/complete`);
+      console.log("Marking complete :: ", response.data);
+
+      // refresh todos immediately
+      await getUserTodos();
+
+      // reset marker flag
+      setMarked(false);
     } catch (error) {
       console.log("Error marking complete", error);
     }

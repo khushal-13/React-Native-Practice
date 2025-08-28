@@ -9,12 +9,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Ionicons, Entypo }  from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axiosUrl";
+import { AuthContext } from "../../context/AuthContext";
 
-const login = () => {
+const Login = () => {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +47,8 @@ const login = () => {
       .post("/login", user)
       .then((response) => {
         const token = response.data.token;
-        AsyncStorage.setItem("authToken", token);
+        const userData = response.data.userData;
+        login(token, userData);
         router.replace("/(tabs)/home");
       })
       .catch((error) => {
@@ -222,6 +225,6 @@ const login = () => {
   );
 };
 
-export default login;
+export default Login;
 
 const styles = StyleSheet.create({});

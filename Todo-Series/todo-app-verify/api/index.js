@@ -123,7 +123,7 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id }, secretKey);
-    res.status(200).json({ token });
+    res.status(200).json({ token: token, userData: user});
   } catch (error) {
     console.log("Error in Login", error);
     res.status(500).json({ message: "Login failed" });
@@ -138,6 +138,7 @@ app.post("/todos/:userId", async (req, res) => {
     const newTodo = new Todo({
       title,
       dueDate: moment().format("YYYY-MM-DD"),
+      user: userId
     });
 
     await newTodo.save();
@@ -263,6 +264,12 @@ app.delete("/todos/:todoId", async(req, res) => {
     if(!todo) {
       return res.status(404).json({ message: "Todo not found" });
     }
+    
+    // remove todo ref from user.todos
+    await User.findByIdAndUpdate(todo.user, {
+      $pull: { todos: todo._id },
+    });
+
     return res.status(200).json({ message: "Todo deleted" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to delete Todo"});
