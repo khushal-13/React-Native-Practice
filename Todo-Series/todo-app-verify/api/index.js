@@ -123,10 +123,55 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id }, secretKey);
-    res.status(200).json({ token: token, userData: user});
+    res.status(200).json({ token: token, userData: user });
   } catch (error) {
     console.log("Error in Login", error);
     res.status(500).json({ message: "Login failed" });
+  }
+});
+
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("Invalid Email");
+      return res.status(401).json({ message: "Invalid email" });
+    }
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+    await user.save();
+    await sendMail(user.email, otp);
+    console.log("OTP Sent for forgot-password");
+    return res
+      .status(200)
+      .json({ message: "OTP Sent succusfully", otp: otp, user: user });
+  } catch (error) {
+    console.log("Error in Forgot-Password", error);
+    res.status(500).json({ message: "Error in Forgot-Password" });
+  }
+});
+
+app.patch("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  if (user.otp !== otp || Date.now() > user.otpExpiry) {
+    return res.status(400).json({ message: "Invalid or expired OTP" });
+  }
+
+  user.password = newPassword;
+  user.otp = undefined;
+  user.otpExpiry = undefined;
+  await user.save();
+
+  res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.log("Error in Reset-Password", error);
+    res.status(500).json({ message: "Reset in Forgot-Password" });
   }
 });
 
@@ -138,13 +183,14 @@ app.post("/todos/:userId", async (req, res) => {
     const newTodo = new Todo({
       title,
       dueDate: moment().format("YYYY-MM-DD"),
-      user: userId
+      user: userId,
     });
 
     await newTodo.save();
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log("User not found");
       res.status(404).json({ message: "User Not found" });
     }
 
@@ -231,7 +277,6 @@ app.get("/todos/count", async (req, res) => {
   }
 });
 
-
 app.patch("/todos/:todoId", async (req, res) => {
   try {
     const todoId = req.params.todoId;
@@ -245,26 +290,25 @@ app.patch("/todos/:todoId", async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if(!updatedTodo) {
-      return res.status(404).json({ message: "Todo not found"});
+    if (!updatedTodo) {
+      return res.status(404).json({ message: "Todo not found" });
     }
 
-    res.status(200).json({ message: "Todo updated", todo: updatedTodo});
+    res.status(200).json({ message: "Todo updated", todo: updatedTodo });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to update todo"});
+    return res.status(500).json({ message: "Failed to update todo" });
   }
 });
 
-
-app.delete("/todos/:todoId", async(req, res) => {
+app.delete("/todos/:todoId", async (req, res) => {
   try {
     const todoId = req.params.todoId;
 
     const todo = await Todo.findByIdAndDelete(todoId);
-    if(!todo) {
+    if (!todo) {
       return res.status(404).json({ message: "Todo not found" });
     }
-    
+
     // remove todo ref from user.todos
     await User.findByIdAndUpdate(todo.user, {
       $pull: { todos: todo._id },
@@ -272,6 +316,6 @@ app.delete("/todos/:todoId", async(req, res) => {
 
     return res.status(200).json({ message: "Todo deleted" });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to delete Todo"});
+    return res.status(500).json({ message: "Failed to delete Todo" });
   }
 });

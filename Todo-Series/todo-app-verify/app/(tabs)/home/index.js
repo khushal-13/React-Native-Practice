@@ -170,8 +170,8 @@ const index = () => {
     }
   };
 
-  console.log("Pending Todos : ", pendingTodos);
-  console.log("Completed Todos : ", completedTodos);
+  // console.log("Pending Todos : ", pendingTodos);
+  // console.log("Completed Todos : ", completedTodos);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -331,7 +331,7 @@ const index = () => {
                       marginVertical: 10,
                     }}
                   >
-                    <Text> Completed tasks</Text>
+                    <Text style={{ fontWeight: "bold"}}> Completed tasks</Text>
                   </View>
 
                   {completedTodos?.map((item, index) => (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -12,11 +12,14 @@ import { LineChart } from "react-native-chart-kit";
 import api from "../../axiosUrl";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from "../../../context/AuthContext";
 
 const index = () => {
   const [completedTasks, setCompletedTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
   const router = useRouter();
+
+  const { user, loading } = useContext(AuthContext);
 
   const fetchTaskData = async () => {
     try {
@@ -33,9 +36,6 @@ const index = () => {
     fetchTaskData();
   }, []);
 
-  // console.log("Completed : ", completedTasks);
-  // console.log("Pending : ", pendingTasks);
-  
   const handleLogout = async () => {
     try {
       AsyncStorage.removeItem("authToken");
@@ -55,11 +55,10 @@ const index = () => {
           }}
         />
 
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>
-            Keep Plan for 15 days
+        <View style={{ marginLeft: 18}}>
+          <Text style={{ fontSize: 20, fontWeight: "600"}}>
+            {user.name}
           </Text>
-          <Text style={{ color: "gray", marginTop: 4 }}> Select category</Text>
         </View>
       </View>
 

@@ -174,7 +174,7 @@ const Login = () => {
               marginTop: 12,
             }}
           >
-            <Text style={{ color: "#007FFF", fontWeight: "500" }}>
+            <Text onPress={() => router.push("/(authenticate)/forgotPassword")} style={{ color: "#007FFF", fontWeight: "500" }}>
               Forgot Password
             </Text>
           </View>
