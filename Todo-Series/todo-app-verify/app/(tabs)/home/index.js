@@ -45,22 +45,11 @@ const index = () => {
     }
   }, [isModalVisible, marked, loading]);
 
-  // // 🔹 Protect against user being null or not loaded yet
-  // if (loading) {
-  //   return (
-  //     <SafeAreaView
-  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-  //     >
-  //       <Text>Loading...</Text>
-  //     </SafeAreaView>
-  //   );
-  // }
-
-  console.log(
-    "------------------------------",
-    user,
-    "---------------------------"
-  );
+  // console.log(
+  //   "------------------------------",
+  //   user,
+  //   "---------------------------"
+  // );
 
   const suggestions = [
     {

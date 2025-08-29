@@ -22,6 +22,27 @@ const register = () => {
   const router = useRouter();
 
   const handleRegister = () => {
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name.trim()) {
+      Alert.alert("Validation Error", "Name is required");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(
+        "Validation Error",
+        "Password must be at least 6 characters long."
+      );
+      return;
+    }
+
     const user = {
       name: name,
       email: email,
@@ -160,8 +181,7 @@ const register = () => {
               justifyContent: "space-between",
               marginTop: 12,
             }}
-          >
-          </View>
+          ></View>
 
           <View style={{ marginTop: 30 }}>
             <Pressable
@@ -187,12 +207,19 @@ const register = () => {
               </Text>
             </Pressable>
 
-            <View style={{ flexDirection: "row", gap: 10, justifyContent: "center", marginTop: 15}}>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 10,
+                justifyContent: "center",
+                marginTop: 15,
+              }}
+            >
               <Pressable
-                // onPress={() => router.replace("/login")}
-                // style={{
-                //   marginTop: "15",
-                // }}
+              // onPress={() => router.replace("/login")}
+              // style={{
+              //   marginTop: "15",
+              // }}
               >
                 <Text
                   style={{
@@ -209,14 +236,13 @@ const register = () => {
                   textAlign: "center",
                   color: "#007FFF",
                   fontWeight: "500",
-                  fontSize: 15
+                  fontSize: 15,
                 }}
                 onPress={() => router.replace("/login")}
               >
                 Login
               </Text>
             </View>
-
           </View>
         </View>
       </KeyboardAvoidingView>

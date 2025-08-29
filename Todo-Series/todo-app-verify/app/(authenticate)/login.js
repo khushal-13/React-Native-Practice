@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons, Ionicons, Entypo }  from "@expo/vector-icons";
+import { MaterialIcons, Ionicons, Entypo } from "@expo/vector-icons";
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -38,6 +38,18 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Validation error", "Please enter both email and password");
+    }
+
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address");
+      return;
+    }
+
     const user = {
       email: email,
       password: password,
@@ -46,14 +58,23 @@ const Login = () => {
     api
       .post("/login", user)
       .then((response) => {
-        const token = response.data.token;
-        const userData = response.data.userData;
-        login(token, userData);
-        router.replace("/(tabs)/home");
+        if (response.status === 200) {
+          const token = response.data.token;
+          const userData = response.data.userData;
+          login(token, userData);
+          router.replace("/(tabs)/home");
+        } else {
+          Alert.alert("Error", response.statusText || "Login failed");
+        }
       })
       .catch((error) => {
-        Alert.alert("Error while login");
-        console.log(error);
+        const message =
+          error.response?.data?.message || // custom backend message
+          error.response?.statusText || // status message like "Unauthorized"
+          "Something went wrong. Please try again.";
+
+        Alert.alert("Login Failed", message);
+        console.log("Login Error:", error.response || error.message);
       });
   };
 
