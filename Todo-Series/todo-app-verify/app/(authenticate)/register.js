@@ -8,9 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Entypo from "@expo/vector-icons/Entypo";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { MaterialIcons, Entypo, Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import api from "../axiosUrl";

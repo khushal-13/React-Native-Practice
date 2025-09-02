@@ -9,9 +9,11 @@ import Todo from "./models/todo.js";
 import moment from "moment";
 import { sendMail } from "./mailer/index.js";
 import { generate } from "otp-generator";
+import bcrypt from "bcrypt";
 
 const app = express();
 const PORT = 3000;
+const saltRounds = 10;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -59,10 +61,13 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const newUser = new User({
       name,
       email,
-      password,
+      password: hashedPassword,
     });
 
     // generate OTP
@@ -117,8 +122,14 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid email" });
     }
 
-    if (user.password !== password) {
-      console.log("Invalid Password");
+    // if (user.password !== password) {
+    //   console.log("Invalid Password");
+    //   return res.status(401).json({ message: "Invalid password" });
+    // }
+
+    { /* compare plain password with hashed password */ }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
@@ -163,7 +174,8 @@ app.patch("/reset-password", async (req, res) => {
     return res.status(400).json({ message: "Invalid or expired OTP" });
   }
 
-  user.password = newPassword;
+  // hash new password
+  user.password = await bcrypt.hash(newPassword, saltRounds);
   user.otp = undefined;
   user.otpExpiry = undefined;
   await user.save();
