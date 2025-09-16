@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, FontAwesome, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import api from "../api";
 
 const Create = () => {
   const colors = [
@@ -38,10 +39,7 @@ const Create = () => {
       reminder: true,
     };
 
-    const response = await axios.post(
-      "http://192.168.1.107:3000/habits",
-      habitDetails
-    );
+    const response = await api.post("/habits", habitDetails);
     if (response.status == 200) {
       setTitle("");
       Alert.alert("Habit added", "Emjoy Practising");
@@ -144,6 +142,7 @@ const Create = () => {
       >
         {days?.map((item, index) => (
           <Pressable
+            key={index}
             style={{
               width: 40,
               height: 40,
